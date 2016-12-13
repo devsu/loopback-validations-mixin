@@ -30,7 +30,7 @@ Then you use the mixin from your model definition files:
 ...
 "mixins": {
   "SetupValidations": {
-    "validatesPresenceOf": [ "propertyName", { "name": "propertyName", "message": "Error property can't be blank" } ],
+    "validatesPresenceOf": [ "name", { "propertyName": "address", "message": "Error property cant be blank" } ],
     "source": "./common/models/validations-function.js" 
   }
 }
@@ -59,13 +59,13 @@ In the `model.json` file:
 ...
 "mixins": {
   "SetupValidations": {
-    "validatesPresenceOf": [ "propertyName", { "name": "propertyName", "message": "Error property can't be blank" } ],
+    "validatesPresenceOf": [ "name", { "propertyName": "address", "message": "Error property cant be blank" } ],
     "validatesLengthOf": [
-      { "name": "propertyName", { "min": 100 },
-      { "name": "propertyName", { "max": 10, "message": { "max": "invalid size" } }
+      { "propertyName": "name", "options": { "min": 100 } },
+      { "propertyName": "address", "options": { "max": 10, "message": { "max": "invalid size" } } }
     ],
     "validatesAsync": [
-      { "name": "propertyName", "method": "validatePropertyName", "message": "message" }
+      { "propertyName": "name", "method": "validatePropertyName", "message": "message" }
     ],
     "asyncMethodsFile": "./common/models/employee-async-validations.js"
   }
@@ -83,7 +83,7 @@ module.exports = {
 };
 
 function validatePropertyName (err, done) {
-  if (this.propertyName === "Invalid") err();
+  if (this.propertyName === 'Invalid') err();
   done();
 }
 ```
@@ -126,27 +126,27 @@ module.exports = {
   validatesAsync,
 };
 
-function validatesAbsenceOf () {
+function validatesAbsenceOf() {
   return [
-    "propertyName", { "name": "propertyAddress", "message": "Error property can't be blank" }
+    'propertyName', {'name': 'address', 'message': 'Error property cant be blank'},
   ];
 }
 
-function validatesLengthOf () {
+function validatesLengthOf() {
   return [
-    { "name": "propertyName", { "min": 100 } },
-    { "name": "propertyAddress", { "max": 10, "message": { "max": "Invalid size" } } }
+    {'propertyName': 'name', 'options': {'min': 100}},
+    {'propertyName': 'address', 'options': {'max': 10, 'message': {'max': 'Invalid size'}}},
   ];
 }
 
-function validatesAsync () {
+function validatesAsync() {
   return [
-    { "name": "propertyName", "function": "validatePropertyName", "message": "message" }
+    {'propertyName': 'name', 'function': 'validatePropertyName', 'message': 'message'},
   ];
 }
 
-function validatePropertyName (err, done) {
-  if (this.propertyName === "Invalid") err();
+function validatePropertyName(err, done) {
+  if (this.propertyName === 'Invalid') err();
   done();
 }
 ```
