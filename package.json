@@ -1,0 +1,38 @@
+{
+  "name": "loopback-validations-mixin",
+  "version": "1.0.0",
+  "description": "Mixin for Loopback to easily configure validations from the model configuration file. It works with both Loopback 2 and 3.",
+  "main": "index.js",
+  "scripts": {
+    "test": "./node_modules/jasmine/bin/jasmine.js",
+    "lint": "eslint .",
+    "posttest": "npm run lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devsu/lnoopback-validations-mixin.git"
+  },
+  "keywords": [
+    "loopback",
+    "mixins",
+    "mixin",
+    "setup",
+    "validation"
+  ],
+  "author": "Devsu",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/devsu/loopback-validations-mixin/issues"
+  },
+  "homepage": "https://github.com/devsu/loopback-validations-mixin#readme",
+  "devDependencies": {
+    "bluebird": "^3.4.6",
+    "eslint": "^3.12.1",
+    "eslint-config-loopback": "^6.0.0",
+    "jasmine": "^2.5.2"
+  },
+  "dependencies": {
+    "debug": "^2.3.3",
+    "lodash": "^4.17.2"
+  }
+}
