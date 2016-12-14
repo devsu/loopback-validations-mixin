@@ -79,7 +79,7 @@ In the `model.json` file:
 ...
 ```
 
-As you can see, you can set an optional `methodsFile` option, to define the file that contains the methods needed by the `validatesAsync` option.
+As you can see, you can set an optional `methodsFile` option, to define the file that contains the methods needed by `validatesAsync` and `validates` options.
 
 In the `employee-async-validations.js` file:
 

@@ -31,33 +31,32 @@ module.exports = (Model, options) => {
     throw new Error('methodsFile is not defined');
   }
 
-  validatesPresenceOf.forEach((validatesPresenceOf) => {
-    if (hasErrMsg(validatesPresenceOf)) {
-      Model.validatesPresenceOf(getPropertyName(validatesPresenceOf), validatesPresenceOf.errMsg);
+  validatesPresenceOf.forEach((validatePresenceOf) => {
+    if (hasErrMsg(validatePresenceOf)) {
+      Model.validatesPresenceOf(getPropertyName(validatePresenceOf), validatePresenceOf.errMsg);
       return;
     }
-    Model.validatesPresenceOf(getPropertyName(validatesPresenceOf));
+    Model.validatesPresenceOf(getPropertyName(validatePresenceOf));
   });
 
-  validatesAbsenceOf.forEach((validatesAbsenceOf) => {
-    console.log(validatesAbsenceOf);
-    if (hasErrMsg(validatesAbsenceOf)) {
-      Model.validatesAbsenceOf(getPropertyName(validatesAbsenceOf), validatesAbsenceOf.errMsg);
+  validatesAbsenceOf.forEach((validateAbsenceOf) => {
+    if (hasErrMsg(validateAbsenceOf)) {
+      Model.validatesAbsenceOf(getPropertyName(validateAbsenceOf), validateAbsenceOf.errMsg);
       return;
     }
-    Model.validatesAbsenceOf(getPropertyName(validatesAbsenceOf));
+    Model.validatesAbsenceOf(getPropertyName(validateAbsenceOf));
   });
 
   validatesLengthOf.forEach((validateLengthOf) => {
     Model.validatesLengthOf(validateLengthOf.propertyName, validateLengthOf.options);
   });
 
-  validatesExclusionOf.forEach((validatesExclusionOf) => {
-    Model.validatesExclusionOf(validatesExclusionOf.propertyName, validatesExclusionOf.options);
+  validatesExclusionOf.forEach((validateExclusionOf) => {
+    Model.validatesExclusionOf(validateExclusionOf.propertyName, validateExclusionOf.options);
   });
 
-  validatesInclusionOf.forEach((validatesInclusionOf) => {
-    Model.validatesInclusionOf(validatesInclusionOf.propertyName, validatesInclusionOf.options);
+  validatesInclusionOf.forEach((validateInclusionOf) => {
+    Model.validatesInclusionOf(validateInclusionOf.propertyName, validateInclusionOf.options);
   });
 
   validatesFormatOf.forEach((validateFormatOf) => {
@@ -69,13 +68,12 @@ module.exports = (Model, options) => {
         validateNumericalityOf.options);
   });
 
-  validatesUniquenessOf.forEach((validatesUniquenessOf) => {
-    Model.validatesUniquenessOf(validatesUniquenessOf.propertyName,
-        validatesUniquenessOf.options);
+  validatesUniquenessOf.forEach((validateUniquenessOf) => {
+    Model.validatesUniquenessOf(validateUniquenessOf.propertyName,
+        validateUniquenessOf.options);
   });
 
   nullCheck.forEach((nullCheck) => {
-    console.log(nullCheck.attr, '---', nullCheck, '---', nullCheck.err);
     if (nullCheck.err) {
       Model.nullCheck(nullCheck.attr, nullCheck.conf, nullCheck.err);
       return;
