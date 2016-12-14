@@ -7,7 +7,6 @@ module.exports = {
 function getModelMock() {
   let theModel = {
     modelName: 'MyModel',
-    observe: jasmine.createSpy('observe'),
     validatesAbsenceOf: jasmine.createSpy('validatesAbsenceOf'),
     validatesPresenceOf: jasmine.createSpy('validatesPresenceOf'),
     validatesLengthOf: jasmine.createSpy('validatesLengthOf'),

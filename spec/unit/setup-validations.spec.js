@@ -2,18 +2,32 @@
 
 const mocks = require('./mocks');
 const validations = require('./validations');
+const employeeValidationMethods = require('./employee-validation-methods');
 const setupValidations = require('../../setup-validations');
 const path = require('path');
 
 describe('setup validations', () => {
-  let Model, options;
+  let Model, options, originalCWD;
+
+  beforeAll(() => {
+    // Modifying process.cwd, to test that it will be taken into account to get the source file
+    originalCWD = process.cwd;
+    process.cwd = () => {
+      return path.join(originalCWD(), 'spec');
+    };
+  });
+
+  afterAll(() => {
+    // reverting the change we made
+    process.cwd = originalCWD;
+  });
 
   beforeEach(() => {
     Model = mocks.getModelMock();
   });
 
   describe('setup validatesPresenceOf', () => {
-    beforeAll(() => {
+    beforeEach(() => {
       options = {
         'validatesPresenceOf': [
           'name',
@@ -32,7 +46,7 @@ describe('setup validations', () => {
   });
 
   describe('setup validatesAbsenceOf', () => {
-    beforeAll(() => {
+    beforeEach(() => {
       options = {
         'validatesAbsenceOf': [
           'name',
@@ -51,7 +65,7 @@ describe('setup validations', () => {
   });
 
   describe('setup validatesLengthOf', () => {
-    beforeAll(() => {
+    beforeEach(() => {
       options = {
         'validatesLengthOf': [
           {'propertyName': 'name', 'options': {'min': 100}},
@@ -70,7 +84,7 @@ describe('setup validations', () => {
   });
 
   describe('setup validatesExclusionOf', () => {
-    beforeAll(() => {
+    beforeEach(() => {
       options = {
         'validatesExclusionOf': [
           {'propertyName': 'name', 'options': {'in': ['www', 'domain']}},
@@ -90,7 +104,7 @@ describe('setup validations', () => {
   });
 
   describe('setup validatesInclusionOf', () => {
-    beforeAll(() => {
+    beforeEach(() => {
       options = {
         'validatesInclusionOf': [
           {'propertyName': 'name', 'options': {'in': ['www', 'domain']}},
@@ -110,7 +124,7 @@ describe('setup validations', () => {
   });
 
   describe('setup validatesFormatOf', () => {
-    beforeAll(() => {
+    beforeEach(() => {
       options = {
         'validatesFormatOf': [
           {'propertyName': 'name', 'options': {'with': /\w+/}},
@@ -130,7 +144,7 @@ describe('setup validations', () => {
   });
 
   describe('setup validatesNumericalityOf', () => {
-    beforeAll(() => {
+    beforeEach(() => {
       options = {
         'validatesNumericalityOf': [
           {'propertyName': 'name', 'options': {'int': true}},
@@ -150,7 +164,7 @@ describe('setup validations', () => {
   });
 
   describe('setup validatesUniquenessOf', () => {
-    beforeAll(() => {
+    beforeEach(() => {
       options = {
         'validatesUniquenessOf': [
           {'propertyName': 'name', 'options': {'scopedTo': ['userId', 'email']}},
@@ -175,28 +189,29 @@ describe('setup validations', () => {
   });
 
   describe('setup validatesAsync', () => {
-    beforeAll(() => {
+    beforeEach(() => {
       options = {
         'validatesAsync': [{
           'propertyName': 'name',
-          'validatorFn': 'validatorName',
+          'validatorFn': 'validatePropertyName',
           'options': {'message': 'error message', 'allowNull': true}},
         ],
-        'methodsFile': './common/models/employee-async-validations.js',
+        'methodsFile': './unit/employee-validation-methods.js',
       };
     });
 
     describe('when methodsFile is defined', () => {
       it('should call validateAsync method', () => {
+        let expectedFunction = employeeValidationMethods.validatePropertyName;
         setupValidations(Model, options);
         expect(Model.validateAsync).toHaveBeenCalledTimes(1);
-        expect(Model.validateAsync).toHaveBeenCalledWith('name', 'validatorName',
+        expect(Model.validateAsync).toHaveBeenCalledWith('name', expectedFunction,
             {'message': 'error message', 'allowNull': true});
       });
     });
 
     describe('when methodsFile is NOT defined', () => {
-      beforeAll(() => {
+      beforeEach(() => {
         delete options.methodsFile;
       });
 
@@ -209,7 +224,7 @@ describe('setup validations', () => {
   });
 
   describe('setup validates', () => {
-    beforeAll(() => {
+    beforeEach(() => {
       options = {
         'validates': [{
           'propertyName': 'name',
@@ -230,7 +245,7 @@ describe('setup validations', () => {
     });
 
     describe('when methodsFile is NOT defined', () => {
-      beforeAll(() => {
+      beforeEach(() => {
         delete options.methodsFile;
       });
 
@@ -243,7 +258,7 @@ describe('setup validations', () => {
   });
 
   describe('setup nullCheck', () => {
-    beforeAll(() => {
+    beforeEach(() => {
       options = {
         'nullCheck': [{
           'attr': 'name',
@@ -265,21 +280,6 @@ describe('setup validations', () => {
   });
 
   describe('when source option is defined', () => {
-    let originalCWD;
-
-    beforeAll(() => {
-      // Modifying process.cwd, to test that it will be taken into account to get the source file
-      originalCWD = process.cwd;
-      process.cwd = () => {
-        return path.join(originalCWD(), 'spec');
-      };
-    });
-
-    afterAll(() => {
-      // reverting the change we made
-      process.cwd = originalCWD;
-    });
-
     beforeEach(() => {
       options.source = './unit/validations.js';
     });

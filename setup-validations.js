@@ -12,10 +12,10 @@ module.exports = (Model, options) => {
 
   let validatesPresenceOf = options['validatesPresenceOf'] || [];
   let validatesAbsenceOf = options['validatesAbsenceOf'] || [];
-  let validatesLengthOf = options['validatesLengthOf'] || [];
+  // let validatesLengthOf = options['validatesLengthOf'] || [];
   let validates = options['validates'] || [];
   let validatesAsync = options['validatesAsync'] || [];
-  let validatesExclusionOf = options['validatesExclusionOf'] || [];
+  // let validatesExclusionOf = options['validatesExclusionOf'] || [];
   let validatesInclusionOf = options['validatesInclusionOf'] || [];
   let validatesFormatOf = options['validatesFormatOf'] || [];
   let validatesNumericalityOf = options['validatesNumericalityOf'] || [];
@@ -47,13 +47,8 @@ module.exports = (Model, options) => {
     Model.validatesAbsenceOf(getPropertyName(validateAbsenceOf));
   });
 
-  validatesLengthOf.forEach((validateLengthOf) => {
-    Model.validatesLengthOf(validateLengthOf.propertyName, validateLengthOf.options);
-  });
-
-  validatesExclusionOf.forEach((validateExclusionOf) => {
-    Model.validatesExclusionOf(validateExclusionOf.propertyName, validateExclusionOf.options);
-  });
+  setupValidation(Model.validatesLengthOf, options['validatesLengthOf']);
+  setupValidation(Model.validatesExclusionOf, options['validatesExclusionOf']);
 
   validatesInclusionOf.forEach((validateInclusionOf) => {
     Model.validatesInclusionOf(validateInclusionOf.propertyName, validateInclusionOf.options);
@@ -92,6 +87,13 @@ module.exports = (Model, options) => {
     validates.forEach((validate) => {
       Model.validate(validate.propertyName, validate.validatorFn,
         validate.options);
+    });
+  }
+
+  function setupValidation(validationMethod, validations) {
+    validations = validations || [];
+    validations.forEach((validation) => {
+      validationMethod.apply(Model, [validation.propertyName, validation.options]);
     });
   }
 
