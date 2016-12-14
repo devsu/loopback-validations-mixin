@@ -33,8 +33,7 @@ Then you use the mixin from your model definition files:
     "validatesPresenceOf": [
       "name",
       { "propertyName": "address", "errMsg": { "message": "Error property cannot be blank" } }
-    ],
-    "source": "./common/models/validations-function.js" 
+    ]
   }
 }
 ...
@@ -73,7 +72,7 @@ In the `model.json` file:
     "validatesAsync": [
       { "propertyName": "name", "method": "validatePropertyName", "message": "message" }
     ],
-    "methodsFile": "./common/models/employee-async-validations.js"
+    "methodsFile": "./common/models/employee-validation-methods.js"
   }
 }
 ...
@@ -81,11 +80,11 @@ In the `model.json` file:
 
 As you can see, you can set an optional `methodsFile` option, to define the file that contains the methods needed by `validatesAsync` and `validates` options.
 
-In the `employee-async-validations.js` file:
+In the `employee-validation-methods.js` file:
 
 ```javascript
 module.exports = {
-    validatePropertyName
+  validatePropertyName
 };
 
 function validatePropertyName (err, done) {
