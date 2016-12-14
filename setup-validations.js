@@ -5,7 +5,6 @@ const path = require('path');
 const debug = require('debug')('loopback:contrib:setup-validations-mixin');
 
 module.exports = (Model, options) => {
-
   let source = options['source'];
   if (source) {
     options = require(path.join(process.cwd(), options.source));
@@ -14,57 +13,101 @@ module.exports = (Model, options) => {
   let validatesPresenceOf = options['validatesPresenceOf'] || [];
   let validatesAbsenceOf = options['validatesAbsenceOf'] || [];
   let validatesLengthOf = options['validatesLengthOf'] || [];
+  let validates = options['validates'] || [];
   let validatesAsync = options['validatesAsync'] || [];
   let validatesExclusionOf = options['validatesExclusionOf'] || [];
   let validatesInclusionOf = options['validatesInclusionOf'] || [];
   let validatesFormatOf = options['validatesFormatOf'] || [];
   let validatesNumericalityOf = options['validatesNumericalityOf'] || [];
   let validatesUniquenessOf = options['validatesUniquenessOf'] || [];
-  let asyncMethodsFile = options['asyncMethodsFile'];
+  let nullCheck = options['nullCheck'] || [];
+  let methodsFile = options['methodsFile'];
 
-  if (validatesAsync.length > 0 && !asyncMethodsFile && !source) {
-    throw new Error('asyncMethodsFile is not defined');
+  if (validatesAsync.length > 0 && !methodsFile && !source) {
+    throw new Error('methodsFile is not defined');
+  }
+
+  if (validates.length > 0 && !methodsFile && !source) {
+    throw new Error('methodsFile is not defined');
   }
 
   validatesPresenceOf.forEach((validatesPresenceOf) => {
-    Model.observe('validatesPresenceOf', validatesPresenceOf.propertyName || validatesPresenceOf);
+    if (hasErrMsg(validatesPresenceOf)) {
+      Model.validatesPresenceOf(getPropertyName(validatesPresenceOf), validatesPresenceOf.errMsg);
+      return;
+    }
+    Model.validatesPresenceOf(getPropertyName(validatesPresenceOf));
   });
 
   validatesAbsenceOf.forEach((validatesAbsenceOf) => {
-    Model.observe('validatesAbsenceOf', validatesAbsenceOf.propertyName || validatesAbsenceOf);
+    console.log(validatesAbsenceOf);
+    if (hasErrMsg(validatesAbsenceOf)) {
+      Model.validatesAbsenceOf(getPropertyName(validatesAbsenceOf), validatesAbsenceOf.errMsg);
+      return;
+    }
+    Model.validatesAbsenceOf(getPropertyName(validatesAbsenceOf));
   });
 
-  validatesLengthOf.forEach((validatesLengthOf) => {
-    Model.observe('validatesLengthOf', validatesLengthOf.propertyName);
+  validatesLengthOf.forEach((validateLengthOf) => {
+    Model.validatesLengthOf(validateLengthOf.propertyName, validateLengthOf.options);
   });
 
   validatesExclusionOf.forEach((validatesExclusionOf) => {
-    Model.observe('validatesExclusionOf', validatesExclusionOf.propertyName);
+    Model.validatesExclusionOf(validatesExclusionOf.propertyName, validatesExclusionOf.options);
   });
 
   validatesInclusionOf.forEach((validatesInclusionOf) => {
-    Model.observe('validatesInclusionOf', validatesInclusionOf.propertyName);
+    Model.validatesInclusionOf(validatesInclusionOf.propertyName, validatesInclusionOf.options);
   });
 
-  validatesFormatOf.forEach((validatesFormatOf) => {
-    Model.observe('validatesFormatOf', validatesFormatOf.propertyName);
+  validatesFormatOf.forEach((validateFormatOf) => {
+    Model.validatesFormatOf(validateFormatOf.propertyName, validateFormatOf.options);
   });
 
-  validatesNumericalityOf.forEach((validatesNumericalityOf) => {
-    Model.observe('validatesNumericalityOf', validatesNumericalityOf.propertyName);
+  validatesNumericalityOf.forEach((validateNumericalityOf) => {
+    Model.validatesNumericalityOf(validateNumericalityOf.propertyName,
+        validateNumericalityOf.options);
   });
 
   validatesUniquenessOf.forEach((validatesUniquenessOf) => {
-    Model.observe('validatesUniquenessOf', validatesUniquenessOf.propertyName);
+    Model.validatesUniquenessOf(validatesUniquenessOf.propertyName,
+        validatesUniquenessOf.options);
   });
 
-  if (asyncMethodsFile || (source && validatesAsync.length > 0)) {
-    validatesAsync.forEach((validatesAsync) => {
-      Model.observe('validatesAsync', validatesAsync.propertyName);
+  nullCheck.forEach((nullCheck) => {
+    console.log(nullCheck.attr, '---', nullCheck, '---', nullCheck.err);
+    if (nullCheck.err) {
+      Model.nullCheck(nullCheck.attr, nullCheck.conf, nullCheck.err);
+      return;
+    }
+    Model.nullCheck(nullCheck.attr, nullCheck.conf);
+  });
+
+  if (methodsFile || (source && validatesAsync.length > 0)) {
+    validatesAsync.forEach((validateAsync) => {
+      Model.validateAsync(validateAsync.propertyName, validateAsync.validatorFn,
+          validateAsync.options);
     });
   }
 
-  function setupValidations(setupValidations, opt) {
+  if (methodsFile || (source && validates.length > 0)) {
+    validates.forEach((validate) => {
+      Model.validate(validate.propertyName, validate.validatorFn,
+        validate.options);
+    });
+  }
 
+  function getPropertyName(validate) {
+    if (validate.propertyName) {
+      return validate.propertyName;
+    }
+    return validate;
+  }
+
+  function hasErrMsg(validate) {
+    if (validate.errMsg) {
+      return true;
+    }
+    return false;
   }
 };

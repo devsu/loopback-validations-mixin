@@ -15,8 +15,10 @@ function getModelMock() {
     validatesInclusionOf: jasmine.createSpy('validatesInclusionOf'),
     validatesFormatOf: jasmine.createSpy('validatesFormatOf'),
     validatesNumericalityOf: jasmine.createSpy('validatesNumericalityOf'),
-    validatesAsyncOf: jasmine.createSpy('validatesAsyncOf'),
+    validate: jasmine.createSpy('validate'),
+    validateAsync: jasmine.createSpy('validateAsync'),
     validatesUniquenessOf: jasmine.createSpy('validatesUniquenessOf'),
+    nullCheck: jasmine.createSpy('nullCheck'),
   };
 
   return theModel;

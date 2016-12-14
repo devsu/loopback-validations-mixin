@@ -30,7 +30,10 @@ Then you use the mixin from your model definition files:
 ...
 "mixins": {
   "SetupValidations": {
-    "validatesPresenceOf": [ "name", { "propertyName": "address", "message": "Error property cant be blank" } ],
+    "validatesPresenceOf": [
+      "name",
+      { "propertyName": "address", "errMsg": { "message": "Error property cannot be blank" } }
+    ],
     "source": "./common/models/validations-function.js" 
   }
 }
@@ -40,7 +43,7 @@ Then you use the mixin from your model definition files:
 ## Options
 
 - All available methods in [Loopback Validate](https://apidocs.strongloop.com/loopback-datasource-juggler/#validatable)
-- asyncMethodsFile (optional)
+- methodsFile (optional)
 - source (optional)
 - include (optional)
 
@@ -59,7 +62,10 @@ In the `model.json` file:
 ...
 "mixins": {
   "SetupValidations": {
-    "validatesPresenceOf": [ "name", { "propertyName": "address", "message": "Error property cant be blank" } ],
+    "validatesPresenceOf": [
+      "name",
+      { "propertyName": "address", "errMsg": { "message": "Error property cannot be blank" } }
+    ],
     "validatesLengthOf": [
       { "propertyName": "name", "options": { "min": 100 } },
       { "propertyName": "address", "options": { "max": 10, "message": { "max": "invalid size" } } }
@@ -67,13 +73,13 @@ In the `model.json` file:
     "validatesAsync": [
       { "propertyName": "name", "method": "validatePropertyName", "message": "message" }
     ],
-    "asyncMethodsFile": "./common/models/employee-async-validations.js"
+    "methodsFile": "./common/models/employee-async-validations.js"
   }
 }
 ...
 ```
 
-As you can see, you can set an optional `asyncMethodsFile` option, to define the file that contains the methods needed by the `validatesAsync` option. 
+As you can see, you can set an optional `methodsFile` option, to define the file that contains the methods needed by the `validatesAsync` option.
 
 In the `employee-async-validations.js` file:
 
@@ -120,33 +126,28 @@ Or just some of them:
 In the Javascript file (`employee-validations.js` in our example):
 
 ```javascript
-module.exports = {
-  validatesAbsenceOf,
-  validatesLengthOf,
-  validatesAsync,
-};
+const validatesAbsenceOf = [
+  'name',
+  {'propertyName': 'address', 'errMsg': {'message': 'Error property cant be blank'}}
+];
 
-function validatesAbsenceOf() {
-  return [
-    'propertyName', {'name': 'address', 'message': 'Error property cant be blank'},
-  ];
-}
+const validatesLengthOf = [
+  {'propertyName': 'name', 'options': {'min': 100}},
+  {'propertyName': 'address', 'options': {'max': 10, 'message': {'max': 'Invalid size'}}},
+];
 
-function validatesLengthOf() {
-  return [
-    {'propertyName': 'name', 'options': {'min': 100}},
-    {'propertyName': 'address', 'options': {'max': 10, 'message': {'max': 'Invalid size'}}},
-  ];
-}
-
-function validatesAsync() {
-  return [
-    {'propertyName': 'name', 'function': 'validatePropertyName', 'message': 'message'},
-  ];
-}
+const validatesAsync = [
+  {'propertyName': 'name', 'validatorFn': 'validateName', 'options': {'message': 'error message', 'allowNull': false}},
+];
 
 function validatePropertyName(err, done) {
   if (this.propertyName === 'Invalid') err();
   done();
 }
+
+module.exports = {
+  validatesAbsenceOf,
+  validatesLengthOf,
+  validatesAsync,
+};
 ```
