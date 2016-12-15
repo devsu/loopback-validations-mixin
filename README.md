@@ -61,17 +61,37 @@ In the `model.json` file:
 ...
 "mixins": {
   "SetupValidations": {
+
     "validatesPresenceOf": [
       "name",
-      { "propertyName": "address", "errMsg": { "message": "Error property cannot be blank" } }
+      {
+        "propertyName": "lastName",
+        "errMsg": { "message": "You should have a lastname" }
+      }
     ],
-    "validatesLengthOf": [
-      { "propertyName": "name", "options": { "min": 100 } },
-      { "propertyName": "address", "options": { "max": 10, "message": { "max": "invalid size" } } }
-    ],
-    "validatesAsync": [
-      { "propertyName": "name", "method": "validatePropertyName", "message": "message" }
-    ],
+
+    "validatesLengthOf": [{
+      "propertyName": "name",
+      "options": {
+        "min": 10
+      }
+    }, {
+      "propertyName": "address",
+      "options": {
+        "max": 10,
+        "allowNull": true,
+        "allowBlank": true,
+        "message": { "max": "invalid size" }
+      }
+    }],
+
+    "validatesAsync": [{
+      "propertyName": "name",
+      "validatorFn": "validatePropertyName",
+      "options": {
+        "message": "this is invalid"
+      }
+    }],
     "methodsFile": "./common/models/employee-validation-methods.js"
   }
 }
@@ -79,6 +99,8 @@ In the `model.json` file:
 ```
 
 As you can see, you can set an optional `methodsFile` option, to define the file that contains the methods needed by `validatesAsync` and `validates` options.
+
+Do not forget to add `allowNull` and `allowBlank` if the property is optional. Otherwise [it will fail](https://github.com/strongloop/loopback-datasource-juggler/issues/541) when the parameter is not passed.
 
 In the `employee-validation-methods.js` file:
 
@@ -88,7 +110,8 @@ module.exports = {
 };
 
 function validatePropertyName (err, done) {
-  if (this.propertyName === 'Invalid') err();
+  let data = this;
+  if (data.name === 'Invalid') err();
   done();
 }
 ```
@@ -116,7 +139,7 @@ Or just some of them:
 "mixins": {
   "SetupValidations": {
     "source": "./common/models/employee-validations.js",
-    "include": [ "validatesAbsenceOf" ]
+    "include": [ "validatesPresenceOf" ]
   }
 }
 ...
@@ -125,28 +148,52 @@ Or just some of them:
 In the Javascript file (`employee-validations.js` in our example):
 
 ```javascript
-const validatesAbsenceOf = [
+const validatesPresenceOf = [
   'name',
-  {'propertyName': 'address', 'errMsg': {'message': 'Error property cant be blank'}}
+  {
+    'propertyName': 'lastName',
+    'errMsg': {'message': 'Error property cant be blank'}
+  }
 ];
 
 const validatesLengthOf = [
-  {'propertyName': 'name', 'options': {'min': 100}},
-  {'propertyName': 'address', 'options': {'max': 10, 'message': {'max': 'Invalid size'}}},
+  {
+    'propertyName': 'name',
+    'options': {'min': 6}
+  },
+  {
+    'propertyName': 'address',
+    'options': {
+      'max': 10,
+      'allowNull': true,
+      'allowBlank': true,
+      'message': {'max': 'Invalid size'},
+    },
+  },
 ];
 
 const validatesAsync = [
-  {'propertyName': 'name', 'validatorFn': 'validateName', 'options': {'message': 'error message', 'allowNull': false}},
+  {
+    'propertyName': 'name',
+    'validatorFn': validatePropertyName,
+    'options': {
+      'message': 'error message',
+      'allowNull': false,
+    },
+  },
 ];
 
 function validatePropertyName(err, done) {
-  if (this.propertyName === 'Invalid') err();
+  let data = this;
+  if (data.name === 'Invalid') err();
   done();
 }
 
 module.exports = {
-  validatesAbsenceOf,
+  validatesPresenceOf,
   validatesLengthOf,
   validatesAsync,
 };
 ```
+
+As mentioned above, make sure you include the `allowNull` and `allowBlank` properties in the options of the non-required properties.
