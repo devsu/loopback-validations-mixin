@@ -27,7 +27,7 @@ module.exports = (Model, options) => {
     setupValidationWithFiles(Model.validate, options.validates, methodsFile || source);
     setupValidationWithFiles(Model.validateAsync, options.validatesAsync, methodsFile || source);
     setupValidateNullCheck(options.nullCheck);
-  }g
+  }
 
   function validateMethodsFile(validations, methodsFile, source) {
     validations = validations || [];
@@ -49,14 +49,17 @@ module.exports = (Model, options) => {
 
   function setupValidationWithFiles(validationMethod, validations, source) {
     validations = validations || [];
-    if (source && validations.length > 0) {
-      const methods = require(path.join(process.cwd(), source));
-      validations.forEach((validate) => {
-        validationMethod.apply(Model, [validate.propertyName, methods[validate.validatorFn],
-          validate.options]);
-      });
+    if (!source || validations.length === 0) {
+      return;
     }
+    const methods = require(path.join(process.cwd(), source));
+    validations.forEach((validate) => {
+      var method = getMethod(validate.validatorFn, methods);
+      validationMethod.apply(Model, [validate.propertyName, method,
+        validate.options]);
+    });
   }
+
   function setupAbsencePresenceValidations(validationMethod, validations) {
     validations = validations || [];
     validations.forEach((validation) => {
@@ -77,5 +80,13 @@ module.exports = (Model, options) => {
 
   function getPropertyName(validation) {
     return validation.propertyName || validation;
+  }
+
+  function getMethod(validatorFn, methods) {
+    let method = validatorFn;
+    if (!_.isFunction(method)) {
+      method = methods[method];
+    }
+    return method;
   }
 };

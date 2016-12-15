@@ -296,7 +296,7 @@ describe('setup validations', () => {
       expect(Model.validatesLengthOf).toHaveBeenCalledWith('address',
           {'max': 10, 'message': {'max': 'Invalid size'}});
       expect(Model.validateAsync).toHaveBeenCalledTimes(1);
-      const expectedMethod = validations.validatePropertyName;
+      const expectedMethod = validations.validatesAsync[0].validatorFn;
       expect(Model.validateAsync).toHaveBeenCalledWith('name', expectedMethod,
           {'message': 'error message', 'allowNull': true});
     });

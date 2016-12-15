@@ -1,10 +1,5 @@
 'use strict';
 
-function validatePropertyName(err, done) {
-  if (this.propertyName === 'Invalid') err();
-  done();
-}
-
 const validatesAbsenceOf = [
   'name',
   {'propertyName': 'address', 'errMsg': {'message': 'Error property cant be blank'}},
@@ -17,13 +12,18 @@ const validatesLengthOf = [
 
 const validatesAsync = [{
   'propertyName': 'name',
-  'validatorFn': 'validatePropertyName',
+  'validatorFn': validatePropertyName,
   'options': {'message': 'error message', 'allowNull': true}},
 ];
+
+function validatePropertyName(err, done) {
+  if (this.propertyName === 'Invalid') err();
+  done();
+}
 
 module.exports = {
   validatesAbsenceOf,
   validatesLengthOf,
   validatesAsync,
-  validatePropertyName,
 };
+
