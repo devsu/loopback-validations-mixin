@@ -260,6 +260,7 @@ describe('setup validations', () => {
 
   describe('when source option is defined', () => {
     beforeEach(() => {
+      options = {};
       options.source = './unit/validations.js';
     });
 
@@ -277,6 +278,32 @@ describe('setup validations', () => {
       const expectedMethod = validations.validatesAsync[0].validatorFn;
       expect(Model.validateAsync).toHaveBeenCalledWith('name', expectedMethod,
           {'message': 'error message', 'allowNull': true});
+    });
+
+    describe('when include is defined - 1', () => {
+      beforeEach(() => {
+        options.include = ['validatesAbsenceOf'];
+      });
+
+      it('should only use validate functions included', () => {
+        setupValidations(Model, options);
+        expect(Model.validatesAbsenceOf).toHaveBeenCalledTimes(2);
+        expect(Model.validatesLengthOf).not.toHaveBeenCalled();
+        expect(Model.validateAsync).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('when include is defined - 2', () => {
+      beforeEach(() => {
+        options.include = ['validatesAbsenceOf', 'validatesLengthOf', 'validateAsync'];
+      });
+
+      it('should only use validate functions included', () => {
+        setupValidations(Model, options);
+        expect(Model.validatesAbsenceOf).toHaveBeenCalledTimes(2);
+        expect(Model.validatesLengthOf).toHaveBeenCalledTimes(2);
+        expect(Model.validateAsync).toHaveBeenCalledTimes(1);
+      });
     });
   });
 });

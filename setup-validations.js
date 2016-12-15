@@ -10,52 +10,61 @@ class SetupValidations {
     this.options = options;
     this.source = options.source;
     this.methodsFile = options.methodsFile;
+    this.include = options.include;
   }
 
   execute() {
-    let model = this.Model;
     let opt = this.options;
     if (this.source) {
       opt = require(path.join(process.cwd(), this.source));
     }
 
-    this.validateMethodsFile(opt.validates);
-    this.validateMethodsFile(opt.validatesAsync);
-    this.setupValidation(model.validatesLengthOf, opt.validatesLengthOf);
-    this.setupValidation(model.validatesExclusionOf, opt.validatesExclusionOf);
-    this.setupValidation(model.validatesInclusionOf, opt.validatesInclusionOf);
-    this.setupValidation(model.validatesFormatOf, opt.validatesFormatOf);
-    this.setupValidation(model.validatesNumericalityOf, opt.validatesNumericalityOf);
-    this.setupValidation(model.validatesUniquenessOf, opt.validatesUniquenessOf);
-    this.setupAbsencePresenceValidations(model.validatesAbsenceOf, opt.validatesAbsenceOf);
-    this.setupAbsencePresenceValidations(model.validatesPresenceOf, opt.validatesPresenceOf);
-    this.setupValidationWithFiles(model.validate, opt.validates);
-    this.setupValidationWithFiles(model.validateAsync, opt.validatesAsync);
+    if (opt.validates || opt.validatesAsync) {
+      this.validateMethodsFile();
+    }
+    this.setupValidation('validatesLengthOf', opt.validatesLengthOf);
+    this.setupValidation('validatesExclusionOf', opt.validatesExclusionOf);
+    this.setupValidation('validatesInclusionOf', opt.validatesInclusionOf);
+    this.setupValidation('validatesFormatOf', opt.validatesFormatOf);
+    this.setupValidation('validatesNumericalityOf', opt.validatesNumericalityOf);
+    this.setupValidation('validatesUniquenessOf', opt.validatesUniquenessOf);
+    this.setupAbsencePresenceValidations('validatesAbsenceOf', opt.validatesAbsenceOf);
+    this.setupAbsencePresenceValidations('validatesPresenceOf', opt.validatesPresenceOf);
+    this.setupValidationWithFiles('validate', opt.validates);
+    this.setupValidationWithFiles('validateAsync', opt.validatesAsync);
   }
 
-  validateMethodsFile(validations) {
-    validations = validations || [];
-    if (validations.length > 0 && !this.methodsFile && !this.source) {
+  validateMethodsFile() {
+    if (!this.methodsFile && !this.source) {
       throw new Error('methodsFile is not defined');
     }
   }
 
-  setupValidationWithFiles(validationMethod, validations) {
+  setupValidationWithFiles(validationMethodName, validations) {
+    if (!this.shouldIncludeValidation(validationMethodName)) {
+      return;
+    }
+    let validationMethod = this.Model[validationMethodName];
     let source = this.methodsFile || this.source;
     validations = validations || [];
     if (!source || validations.length === 0) {
       return;
     }
     const methods = require(path.join(process.cwd(), source));
-    validations.forEach((validate) => {
-      let method = this.getMethod(validate.validatorFn, methods);
-      validationMethod.apply(this.Model, [validate.propertyName, method,
-        validate.options]);
+
+    validations.forEach((validation) => {
+      let method = this.getMethod(validation.validatorFn, methods);
+      validationMethod.apply(this.Model, [validation.propertyName, method,
+        validation.options]);
     });
   }
 
-  setupAbsencePresenceValidations(validationMethod, validations) {
+  setupAbsencePresenceValidations(validationMethodName, validations) {
+    if (!this.shouldIncludeValidation(validationMethodName)) {
+      return;
+    }
     validations = validations || [];
+    let validationMethod = this.Model[validationMethodName];
     validations.forEach((validation) => {
       if (validation.errMsg) {
         validationMethod.apply(this.Model, [this.getPropertyName(validation), validation.errMsg]);
@@ -65,11 +74,19 @@ class SetupValidations {
     });
   }
 
-  setupValidation(validationMethod, validations) {
+  setupValidation(validationMethodName, validations) {
+    if (!this.shouldIncludeValidation(validationMethodName)) {
+      return;
+    }
     validations = validations || [];
+    let validationMethod = this.Model[validationMethodName];
     validations.forEach((validation) => {
       validationMethod.apply(this.Model, [validation.propertyName, validation.options]);
     });
+  }
+
+  shouldIncludeValidation(validationMethodName) {
+    return !this.include || (this.include && _.includes(this.include, validationMethodName));
   }
 
   getPropertyName(validation) {
