@@ -228,18 +228,19 @@ describe('setup validations', () => {
       options = {
         'validates': [{
           'propertyName': 'name',
-          'validatorFn': 'validatorName',
+          'validatorFn': 'validatePropertyName',
           'options': {'message': 'error message', 'allowNull': true}},
         ],
-        'methodsFile': './common/models/employee-validations.js',
+        'methodsFile': './unit/employee-validation-methods.js',
       };
     });
 
     describe('when methodsFile is defined', () => {
       it('should call validate method', () => {
+        let expectedFunction = employeeValidationMethods.validatePropertyName;
         setupValidations(Model, options);
         expect(Model.validate).toHaveBeenCalledTimes(1);
-        expect(Model.validate).toHaveBeenCalledWith('name', 'validatorName',
+        expect(Model.validate).toHaveBeenCalledWith('name', expectedFunction,
             {'message': 'error message', 'allowNull': true});
       });
     });
@@ -284,7 +285,7 @@ describe('setup validations', () => {
       options.source = './unit/validations.js';
     });
 
-    it('Should add the hooks in the model using the methods in the file', () => {
+    it('Should add the validations in the model using the methods in the file', () => {
       setupValidations(Model, options);
       expect(Model.validatesAbsenceOf).toHaveBeenCalledTimes(2);
       expect(Model.validatesAbsenceOf).toHaveBeenCalledWith('name');
@@ -295,7 +296,8 @@ describe('setup validations', () => {
       expect(Model.validatesLengthOf).toHaveBeenCalledWith('address',
           {'max': 10, 'message': {'max': 'Invalid size'}});
       expect(Model.validateAsync).toHaveBeenCalledTimes(1);
-      expect(Model.validateAsync).toHaveBeenCalledWith('name', 'validatorName',
+      const expectedMethod = validations.validatePropertyName;
+      expect(Model.validateAsync).toHaveBeenCalledWith('name', expectedMethod,
           {'message': 'error message', 'allowNull': true});
     });
   });

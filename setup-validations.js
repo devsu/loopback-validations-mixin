@@ -5,88 +5,66 @@ const path = require('path');
 const debug = require('debug')('loopback:contrib:setup-validations-mixin');
 
 module.exports = (Model, options) => {
-  let source = options['source'];
+  let source = options.source;
   if (source) {
-    options = require(path.join(process.cwd(), options.source));
+    options = require(path.join(process.cwd(), source));
   }
 
-  let validatesPresenceOf = options['validatesPresenceOf'] || [];
-  let validatesAbsenceOf = options['validatesAbsenceOf'] || [];
-  // let validatesLengthOf = options['validatesLengthOf'] || [];
-  let validates = options['validates'] || [];
-  let validatesAsync = options['validatesAsync'] || [];
-  // let validatesExclusionOf = options['validatesExclusionOf'] || [];
-  let validatesInclusionOf = options['validatesInclusionOf'] || [];
-  let validatesFormatOf = options['validatesFormatOf'] || [];
-  let validatesNumericalityOf = options['validatesNumericalityOf'] || [];
-  let validatesUniquenessOf = options['validatesUniquenessOf'] || [];
-  let nullCheck = options['nullCheck'] || [];
-  let methodsFile = options['methodsFile'];
+  let methodsFile = options.methodsFile;
+  validateMethodsFile(options.validates, methodsFile, source);
+  validateMethodsFile(options.validatesAsync, methodsFile, source);
+  setupValidations();
 
-  if (validatesAsync.length > 0 && !methodsFile && !source) {
-    throw new Error('methodsFile is not defined');
+  function setupValidations() {
+    setupValidation(Model.validatesLengthOf, options.validatesLengthOf);
+    setupValidation(Model.validatesExclusionOf, options.validatesExclusionOf);
+    setupValidation(Model.validatesInclusionOf, options.validatesInclusionOf);
+    setupValidation(Model.validatesFormatOf, options.validatesFormatOf);
+    setupValidation(Model.validatesNumericalityOf, options.validatesNumericalityOf);
+    setupValidation(Model.validatesUniquenessOf, options.validatesUniquenessOf);
+    setupAbsencePresenceValidations(Model.validatesAbsenceOf, options.validatesAbsenceOf);
+    setupAbsencePresenceValidations(Model.validatesPresenceOf, options.validatesPresenceOf);
+    setupValidationWithFiles(Model.validate, options.validates, methodsFile || source);
+    setupValidationWithFiles(Model.validateAsync, options.validatesAsync, methodsFile || source);
+    setupValidateNullCheck(options.nullCheck);
+  }g
+
+  function validateMethodsFile(validations, methodsFile, source) {
+    validations = validations || [];
+    if (validations.length > 0 && !methodsFile && !source) {
+      throw new Error('methodsFile is not defined');
+    }
   }
 
-  if (validates.length > 0 && !methodsFile && !source) {
-    throw new Error('methodsFile is not defined');
-  }
-
-  validatesPresenceOf.forEach((validatePresenceOf) => {
-    if (hasErrMsg(validatePresenceOf)) {
-      Model.validatesPresenceOf(getPropertyName(validatePresenceOf), validatePresenceOf.errMsg);
-      return;
-    }
-    Model.validatesPresenceOf(getPropertyName(validatePresenceOf));
-  });
-
-  validatesAbsenceOf.forEach((validateAbsenceOf) => {
-    if (hasErrMsg(validateAbsenceOf)) {
-      Model.validatesAbsenceOf(getPropertyName(validateAbsenceOf), validateAbsenceOf.errMsg);
-      return;
-    }
-    Model.validatesAbsenceOf(getPropertyName(validateAbsenceOf));
-  });
-
-  setupValidation(Model.validatesLengthOf, options['validatesLengthOf']);
-  setupValidation(Model.validatesExclusionOf, options['validatesExclusionOf']);
-
-  validatesInclusionOf.forEach((validateInclusionOf) => {
-    Model.validatesInclusionOf(validateInclusionOf.propertyName, validateInclusionOf.options);
-  });
-
-  validatesFormatOf.forEach((validateFormatOf) => {
-    Model.validatesFormatOf(validateFormatOf.propertyName, validateFormatOf.options);
-  });
-
-  validatesNumericalityOf.forEach((validateNumericalityOf) => {
-    Model.validatesNumericalityOf(validateNumericalityOf.propertyName,
-        validateNumericalityOf.options);
-  });
-
-  validatesUniquenessOf.forEach((validateUniquenessOf) => {
-    Model.validatesUniquenessOf(validateUniquenessOf.propertyName,
-        validateUniquenessOf.options);
-  });
-
-  nullCheck.forEach((nullCheck) => {
-    if (nullCheck.err) {
-      Model.nullCheck(nullCheck.attr, nullCheck.conf, nullCheck.err);
-      return;
-    }
-    Model.nullCheck(nullCheck.attr, nullCheck.conf);
-  });
-
-  if (methodsFile || (source && validatesAsync.length > 0)) {
-    validatesAsync.forEach((validateAsync) => {
-      Model.validateAsync(validateAsync.propertyName, validateAsync.validatorFn,
-          validateAsync.options);
+  function setupValidateNullCheck(validations) {
+    validations = validations || [];
+    validations.forEach((validation) => {
+      if (validation.err) {
+        Model.nullCheck(validation.attr, validation.conf, validation.err);
+        return;
+      }
+      Model.nullCheck(validation.attr, validation.conf);
     });
   }
 
-  if (methodsFile || (source && validates.length > 0)) {
-    validates.forEach((validate) => {
-      Model.validate(validate.propertyName, validate.validatorFn,
-        validate.options);
+  function setupValidationWithFiles(validationMethod, validations, source) {
+    validations = validations || [];
+    if (source && validations.length > 0) {
+      const methods = require(path.join(process.cwd(), source));
+      validations.forEach((validate) => {
+        validationMethod.apply(Model, [validate.propertyName, methods[validate.validatorFn],
+          validate.options]);
+      });
+    }
+  }
+  function setupAbsencePresenceValidations(validationMethod, validations) {
+    validations = validations || [];
+    validations.forEach((validation) => {
+      if (validation.errMsg) {
+        validationMethod.apply(Model, [getPropertyName(validation), validation.errMsg]);
+        return;
+      }
+      validationMethod.apply(Model, [getPropertyName(validation)]);
     });
   }
 
@@ -97,17 +75,7 @@ module.exports = (Model, options) => {
     });
   }
 
-  function getPropertyName(validate) {
-    if (validate.propertyName) {
-      return validate.propertyName;
-    }
-    return validate;
-  }
-
-  function hasErrMsg(validate) {
-    if (validate.errMsg) {
-      return true;
-    }
-    return false;
+  function getPropertyName(validation) {
+    return validation.propertyName || validation;
   }
 };

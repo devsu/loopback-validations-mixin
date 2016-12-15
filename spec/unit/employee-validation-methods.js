@@ -1,10 +1,10 @@
 'use strict';
 
 module.exports = {
-  validatePropertyName
+  validatePropertyName,
 };
 
-function validatePropertyName (err, done) {
+function validatePropertyName(err, done) {
   if (this.propertyName === 'Invalid') err();
   done();
 }
