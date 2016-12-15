@@ -199,3 +199,10 @@ function validatePropertyName (err, done) {
   done();
 }
 ```
+## Credits
+
+Created by [Devsu](http://devsu.com/).
+
+Copyright Devsu LLC, 2016.
+
+License: MIT
