@@ -4,89 +4,100 @@ const _ = require('lodash');
 const path = require('path');
 const debug = require('debug')('loopback:contrib:setup-validations-mixin');
 
-module.exports = (Model, options) => {
-  let source = options.source;
-  if (source) {
-    options = require(path.join(process.cwd(), source));
+class SetupValidations {
+  constructor(Model, options) {
+    this.Model = Model;
+    this.options = options;
+    this.source = options.source;
+    this.methodsFile = options.methodsFile;
   }
 
-  let methodsFile = options.methodsFile;
-  validateMethodsFile(options.validates, methodsFile, source);
-  validateMethodsFile(options.validatesAsync, methodsFile, source);
-  setupValidations();
+  execute() {
+    let model = this.Model;
+    let opt = this.options;
+    if (this.source) {
+      opt = require(path.join(process.cwd(), this.source));
+    }
 
-  function setupValidations() {
-    setupValidation(Model.validatesLengthOf, options.validatesLengthOf);
-    setupValidation(Model.validatesExclusionOf, options.validatesExclusionOf);
-    setupValidation(Model.validatesInclusionOf, options.validatesInclusionOf);
-    setupValidation(Model.validatesFormatOf, options.validatesFormatOf);
-    setupValidation(Model.validatesNumericalityOf, options.validatesNumericalityOf);
-    setupValidation(Model.validatesUniquenessOf, options.validatesUniquenessOf);
-    setupAbsencePresenceValidations(Model.validatesAbsenceOf, options.validatesAbsenceOf);
-    setupAbsencePresenceValidations(Model.validatesPresenceOf, options.validatesPresenceOf);
-    setupValidationWithFiles(Model.validate, options.validates, methodsFile || source);
-    setupValidationWithFiles(Model.validateAsync, options.validatesAsync, methodsFile || source);
-    setupValidateNullCheck(options.nullCheck);
+    this.validateMethodsFile(opt.validates);
+    this.validateMethodsFile(opt.validatesAsync);
+    this.setupValidation(model.validatesLengthOf, opt.validatesLengthOf);
+    this.setupValidation(model.validatesExclusionOf, opt.validatesExclusionOf);
+    this.setupValidation(model.validatesInclusionOf, opt.validatesInclusionOf);
+    this.setupValidation(model.validatesFormatOf, opt.validatesFormatOf);
+    this.setupValidation(model.validatesNumericalityOf, opt.validatesNumericalityOf);
+    this.setupValidation(model.validatesUniquenessOf, opt.validatesUniquenessOf);
+    this.setupAbsencePresenceValidations(model.validatesAbsenceOf, opt.validatesAbsenceOf);
+    this.setupAbsencePresenceValidations(model.validatesPresenceOf, opt.validatesPresenceOf);
+    this.setupValidationWithFiles(model.validate, opt.validates);
+    this.setupValidationWithFiles(model.validateAsync, opt.validatesAsync);
+    this.setupValidateNullCheck(opt.nullCheck);
   }
 
-  function validateMethodsFile(validations, methodsFile, source) {
+  validateMethodsFile(validations) {
     validations = validations || [];
-    if (validations.length > 0 && !methodsFile && !source) {
+    if (validations.length > 0 && !this.methodsFile && !this.source) {
       throw new Error('methodsFile is not defined');
     }
   }
 
-  function setupValidateNullCheck(validations) {
+  setupValidateNullCheck(validations) {
     validations = validations || [];
     validations.forEach((validation) => {
       if (validation.err) {
-        Model.nullCheck(validation.attr, validation.conf, validation.err);
+        this.Model.nullCheck(validation.attr, validation.conf, validation.err);
         return;
       }
-      Model.nullCheck(validation.attr, validation.conf);
+      this.Model.nullCheck(validation.attr, validation.conf);
     });
   }
 
-  function setupValidationWithFiles(validationMethod, validations, source) {
+  setupValidationWithFiles(validationMethod, validations) {
+    let source = this.methodsFile || this.source;
     validations = validations || [];
     if (!source || validations.length === 0) {
       return;
     }
     const methods = require(path.join(process.cwd(), source));
     validations.forEach((validate) => {
-      var method = getMethod(validate.validatorFn, methods);
-      validationMethod.apply(Model, [validate.propertyName, method,
+      let method = this.getMethod(validate.validatorFn, methods);
+      validationMethod.apply(this.Model, [validate.propertyName, method,
         validate.options]);
     });
   }
 
-  function setupAbsencePresenceValidations(validationMethod, validations) {
+  setupAbsencePresenceValidations(validationMethod, validations) {
     validations = validations || [];
     validations.forEach((validation) => {
       if (validation.errMsg) {
-        validationMethod.apply(Model, [getPropertyName(validation), validation.errMsg]);
+        validationMethod.apply(this.Model, [this.getPropertyName(validation), validation.errMsg]);
         return;
       }
-      validationMethod.apply(Model, [getPropertyName(validation)]);
+      validationMethod.apply(this.Model, [this.getPropertyName(validation)]);
     });
   }
 
-  function setupValidation(validationMethod, validations) {
+  setupValidation(validationMethod, validations) {
     validations = validations || [];
     validations.forEach((validation) => {
-      validationMethod.apply(Model, [validation.propertyName, validation.options]);
+      validationMethod.apply(this.Model, [validation.propertyName, validation.options]);
     });
   }
 
-  function getPropertyName(validation) {
+  getPropertyName(validation) {
     return validation.propertyName || validation;
   }
 
-  function getMethod(validatorFn, methods) {
+  getMethod(validatorFn, methods) {
     let method = validatorFn;
     if (!_.isFunction(method)) {
       method = methods[method];
     }
     return method;
   }
+}
+
+module.exports = (Model, options) => {
+  const setupValidations = new SetupValidations(Model, options);
+  setupValidations.execute();
 };
