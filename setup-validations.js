@@ -2,7 +2,6 @@
 
 const _ = require('lodash');
 const path = require('path');
-const debug = require('debug')('loopback:contrib:setup-validations-mixin');
 
 class SetupValidations {
   constructor(Model, options) {
