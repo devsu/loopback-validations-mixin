@@ -46,75 +46,14 @@ Then you use the mixin from your model definition files:
 - source (optional)
 - include (optional)
 
+If `source` is defined, it will take into account only the validations defined in such file, and ignore the ones in the JSON configuration file.
+
 ## Usage
 
 You can define the validations directly in the model JSON configuration file, or in a JS file.
 
+- [From JS file](#from-js-file) (Recommended)
 - [From JSON](#from-json)
-- [From JS file](#from-js-file)
-
-### From JSON
-
-In the `model.json` file:
-
-```json
-...
-"mixins": {
-  "SetupValidations": {
-
-    "validatesPresenceOf": [
-      "name",
-      {
-        "propertyName": "lastName",
-        "errMsg": { "message": "You should have a lastname" }
-      }
-    ],
-
-    "validatesLengthOf": [{
-      "propertyName": "name",
-      "options": {
-        "min": 10
-      }
-    }, {
-      "propertyName": "address",
-      "options": {
-        "max": 10,
-        "allowNull": true,
-        "allowBlank": true,
-        "message": { "max": "invalid size" }
-      }
-    }],
-
-    "validatesAsync": [{
-      "propertyName": "name",
-      "validatorFn": "validatePropertyName",
-      "options": {
-        "message": "this is invalid"
-      }
-    }],
-    "methodsFile": "./common/models/employee-validation-methods.js"
-  }
-}
-...
-```
-
-As you can see, you can set an optional `methodsFile` option, to define the file that contains the methods needed by `validatesAsync` and `validates` options.
-
-Do not forget to add `allowNull` and `allowBlank` if the property is optional. Otherwise [it will fail](https://github.com/strongloop/loopback-datasource-juggler/issues/541) when the parameter is not passed.
-
-In the `employee-validation-methods.js` file:
-
-```javascript
-module.exports = {
-  validatePropertyName
-};
-
-function validatePropertyName (err, done) {
-  let data = this;
-  if (data.name === 'Invalid') err();
-  done();
-}
-```
 
 ### From JS File
 
@@ -196,4 +135,67 @@ module.exports = {
 };
 ```
 
+Do not forget to add `allowNull` and `allowBlank` if the property is optional. Otherwise [it will fail](https://github.com/strongloop/loopback-datasource-juggler/issues/541) when the parameter is not passed.
+
+### From JSON
+
+In the `model.json` file:
+
+```json
+...
+"mixins": {
+  "SetupValidations": {
+
+    "validatesPresenceOf": [
+      "name",
+      {
+        "propertyName": "lastName",
+        "errMsg": { "message": "You should have a lastname" }
+      }
+    ],
+
+    "validatesLengthOf": [{
+      "propertyName": "name",
+      "options": {
+        "min": 10
+      }
+    }, {
+      "propertyName": "address",
+      "options": {
+        "max": 10,
+        "allowNull": true,
+        "allowBlank": true,
+        "message": { "max": "invalid size" }
+      }
+    }],
+
+    "validatesAsync": [{
+      "propertyName": "name",
+      "validatorFn": "validatePropertyName",
+      "options": {
+        "message": "this is invalid"
+      }
+    }],
+    "methodsFile": "./common/models/employee-validation-methods.js"
+  }
+}
+...
+```
+
+As you can see, you can set an optional `methodsFile` option, to define the file that contains the methods needed by `validatesAsync` and `validates` options.
+
 As mentioned above, make sure you include the `allowNull` and `allowBlank` properties in the options of the non-required properties.
+
+In the `employee-validation-methods.js` file:
+
+```javascript
+module.exports = {
+  validatePropertyName
+};
+
+function validatePropertyName (err, done) {
+  let data = this;
+  if (data.name === 'Invalid') err();
+  done();
+}
+```
