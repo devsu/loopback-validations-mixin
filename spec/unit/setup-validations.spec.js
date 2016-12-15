@@ -258,28 +258,6 @@ describe('setup validations', () => {
     });
   });
 
-  describe('setup nullCheck', () => {
-    beforeEach(() => {
-      options = {
-        'nullCheck': [{
-          'attr': 'name',
-          'conf': {'allowBlank': true},
-        }, {
-          'attr': 'address',
-          'conf': {'allowBlank': false},
-          'err': 'errorFn',
-        }],
-      };
-    });
-
-    it('should call nullCheck method', () => {
-      setupValidations(Model, options);
-      expect(Model.nullCheck).toHaveBeenCalledTimes(2);
-      expect(Model.nullCheck).toHaveBeenCalledWith('name', {'allowBlank': true});
-      expect(Model.nullCheck).toHaveBeenCalledWith('address', {'allowBlank': false}, 'errorFn');
-    });
-  });
-
   describe('when source option is defined', () => {
     beforeEach(() => {
       options.source = './unit/validations.js';

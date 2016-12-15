@@ -31,7 +31,6 @@ class SetupValidations {
     this.setupAbsencePresenceValidations(model.validatesPresenceOf, opt.validatesPresenceOf);
     this.setupValidationWithFiles(model.validate, opt.validates);
     this.setupValidationWithFiles(model.validateAsync, opt.validatesAsync);
-    this.setupValidateNullCheck(opt.nullCheck);
   }
 
   validateMethodsFile(validations) {
@@ -39,17 +38,6 @@ class SetupValidations {
     if (validations.length > 0 && !this.methodsFile && !this.source) {
       throw new Error('methodsFile is not defined');
     }
-  }
-
-  setupValidateNullCheck(validations) {
-    validations = validations || [];
-    validations.forEach((validation) => {
-      if (validation.err) {
-        this.Model.nullCheck(validation.attr, validation.conf, validation.err);
-        return;
-      }
-      this.Model.nullCheck(validation.attr, validation.conf);
-    });
   }
 
   setupValidationWithFiles(validationMethod, validations) {
