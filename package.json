@@ -1,6 +1,6 @@
 {
   "name": "loopback-validations-mixin",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Mixin for Loopback to easily configure validations from the model configuration file. It works with both Loopback 2 and 3.",
   "main": "index.js",
   "scripts": {
