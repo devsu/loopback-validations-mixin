@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/devsu/lnoopback-validations-mixin.git"
+    "url": "git+https://github.com/devsu/loopback-validations-mixin.git"
   },
   "keywords": [
     "loopback",
